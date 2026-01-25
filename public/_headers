@@ -1,9 +1,8 @@
 /*
-  X-Content-Type-Options: nosniff
+  Content-Type: text/html; charset=UTF-8
 
-/assets/*
-  Content-Type: application/javascript; charset=utf-8
-  Cache-Control: public, max-age=31536000, immutable
+/assets/*.css
+  Content-Type: text/css; charset=UTF-8
 
-/*.css
-  Content-Type: text/css; charset=utf-8
+/assets/*.js
+  Content-Type: application/javascript; charset=UTF-8
