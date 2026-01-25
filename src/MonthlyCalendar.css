@@ -1,0 +1,140 @@
+.monthly-calendar {
+  background: var(--bg-soft);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.calendar-header button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+
+  /* 🔴 FIX VISIBILITÀ */
+  color: var(--text);
+  padding: 4px 8px;
+}
+
+
+.calendar-header button:hover {
+  background: var(--border);
+  border-radius: 6px;
+}
+
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+
+
+
+.calendar-viewport {
+  will-change: transform, opacity;
+}
+
+/* versione finale: soft ma percepibile */
+.calendar-viewport.slide-next {
+  animation: slide-in-next 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.calendar-viewport.slide-prev {
+  animation: slide-in-prev 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes slide-in-next {
+  from {
+    transform: translate3d(18px, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-prev {
+  from {
+    transform: translate3d(-18px, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+
+
+.calendar-weekday {
+  color: var(--text-muted);
+}
+
+.calendar-day {
+  position: relative;
+  height: 36px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.calendar-day:hover {
+  background: var(--border);
+}
+
+.calendar-day.outside {
+  opacity: 0.4;
+}
+
+.day-number {
+  font-size: 14px;
+}
+
+.day-dot {
+  display: block;
+  font-size: 10px;
+  color: #dc2626;
+  line-height: 1;
+}
+
+.calendar-day.selected {
+  background: var(--primary);
+  color: #fff;
+}
+
+.calendar-day.selected .day-dot {
+  color: #fff;
+}
+
+/* opzionale ma consigliato */
+.calendar-day {
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.calendar-day.today {
+  border: 1px solid var(--accent-color);
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.calendar-day.today::after {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background: var(--accent-color);
+  border-radius: 50%;
+  display: block;
+  margin: 2px auto 0;
+}
+
+.calendar-day.today .day-number {
+  font-size: 1.2em;
+  font-weight: 800;
+}
