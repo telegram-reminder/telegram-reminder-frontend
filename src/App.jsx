@@ -25,18 +25,23 @@ const LAST_SEEN_SENT_AT_KEY = "telegram_reminder_last_seen_sent_at";
 TOKEN BOOTSTRAP
 ====================================================
 */
-
 (() => {
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get("token");
+  let token = null;
 
-  // Se il token è presente nell'URL, viene salvato
-  // in localStorage e l'URL viene ripulito
+  // 1️⃣ Token da URL classico
+  const params = new URLSearchParams(window.location.search);
+  token = params.get("token");
+
+  // 2️⃣ Token da Telegram WebApp
+  if (!token && window?.Telegram?.WebApp?.initDataUnsafe?.start_param) {
+    token = window.Telegram.WebApp.initDataUnsafe.start_param;
+  }
+
   if (token) {
     localStorage.setItem("user_token", token);
-    window.history.replaceState({}, "", "/");
   }
 })();
+
 
 /*
 ====================================================
@@ -529,13 +534,13 @@ setTimeout(async () => {
   --------------------------------------------------
   */
 
-  if (!token) {
-    return (
-      <div className="app">
-        <h2>⚠️ Apri l’app dal link ricevuto su Telegram</h2>
-      </div>
-    );
-  }
+if (!token && !window?.Telegram?.WebApp) {
+  return (
+    <div className="app">
+      <h2>⚠️ Apri l’app dal link ricevuto su Telegram</h2>
+    </div>
+  );
+}
 
   /*
   --------------------------------------------------
