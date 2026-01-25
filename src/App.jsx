@@ -140,6 +140,15 @@ export default function App() {
   const token = localStorage.getItem("user_token");
 
 console.log("APP CON SETTINGS");
+
+  useEffect(() => {
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+    }
+  }, []);
+  
+  
   /*
   --------------------------------------------------
   STATE
