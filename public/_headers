@@ -1,0 +1,5 @@
+/assets/*.css
+  Content-Type: text/css; charset=UTF-8
+
+/assets/*.js
+  Content-Type: application/javascript; charset=UTF-8
