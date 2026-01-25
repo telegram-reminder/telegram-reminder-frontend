@@ -1,4 +1,3 @@
-import "./MonthlyCalendar.css";
 import { useMemo, useState, useEffect } from "react";
 import { t, getLang } from "./i18n";
 
