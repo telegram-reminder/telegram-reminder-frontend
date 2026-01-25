@@ -1,11 +1,11 @@
 {
   "name": "Telegram Reminder",
   "short_name": "Reminder",
-  "description": "Promemoria personali con notifiche Telegram ed email",
+  "description": "Promemoria personali da Telegram",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "background_color": "#ffffff",
   "theme_color": "#2563eb",
   "orientation": "portrait",
   "icons": [
