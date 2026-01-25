@@ -1,8 +1,0 @@
-{
-  "routes": [
-    {
-      "pattern": "/verify-email*",
-      "script": "telegram-reminder"
-    }
-  ]
-}
