@@ -1,5 +1,33 @@
+/* ====================================================
+   GLOBAL THEME VARIABLES (Telegram-safe)
+   ==================================================== */
+
+:root {
+  --bg-soft: #f8fafc;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --border: #e5e7eb;
+  --primary: #2563eb;
+  --accent-color: #2563eb;
+}
+
+
+/* ====================================================
+   DARK MODE
+   ==================================================== */
+
+body.dark {
+  --bg-soft: #020617;
+  --text: #e5e7eb;
+  --text-muted: #94a3b8;
+  --border: #1e293b;
+  --primary: #3b82f6;
+  --accent-color: #60a5fa;
+}
+
+
 .monthly-calendar {
-  background: var(--bg-soft);
+  background: var(--bg-soft, #f8fafc);
 }
 
 .calendar-header {
@@ -16,7 +44,7 @@
   font-size: 18px;
 
   /* 🔴 FIX VISIBILITÀ */
-  color: var(--text);
+  color: var(--text, #0f172a);
   padding: 4px 8px;
 }
 
@@ -119,7 +147,7 @@
 }
 
 .calendar-day.today {
-  border: 1px solid var(--accent-color);
+  border: 1px solid var(--accent-color, #2563eb);
   border-radius: 999px;
   font-weight: 600;
 }
