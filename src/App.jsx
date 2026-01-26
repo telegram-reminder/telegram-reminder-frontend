@@ -380,7 +380,7 @@ setToast({
 const payload = {
   text: finalText,
   remindAt: finalDate.toISOString(),
-  lang: localStorage.getItem("lang") || getLang()
+  lang: localStorage.getItem("lang") || "it"
 };
 
 
