@@ -3,8 +3,8 @@
   "short_name": "Reminder",
   "description": "Promemoria personali da Telegram",
 
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/?source=twa",
+  "scope": "/"
 
   "display": "standalone",
   "background_color": "#ffffff",
@@ -24,3 +24,5 @@
     }
   ]
 }
+
+
