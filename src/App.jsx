@@ -390,12 +390,15 @@ const utcDate = new Date(
 const payload = {
   text: finalText,
   remindAt: utcDate.toISOString(),
-  lang // ← lingua corrente dell’APP
+  lang: localStorage.getItem("lang") || lang
 };
+
 
 
     try {
       if (editingId) {
+		  console.log("📦 PAYLOAD REMINDER =", payload);
+
 		  console.log("🚨 PAYLOAD LANG =", lang, "localStorage =", localStorage.getItem("lang"));
 
        await fetch(`${API}/api/reminder/${editingId}`, {
