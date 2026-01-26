@@ -389,7 +389,8 @@ const utcDate = new Date(
 
 const payload = {
   text: finalText,
-  remindAt: utcDate.toISOString()
+  remindAt: utcDate.toISOString(),
+  lang // ← lingua corrente dell’APP
 };
 
 
