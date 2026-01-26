@@ -380,12 +380,6 @@ setToast({
   return;
 }
 
-// 🔧 CONVERSIONE CORRETTA LOCALE → UTC
-const localDate = finalDate;
-
-const utcDate = new Date(
-  localDate.getTime() - localDate.getTimezoneOffset() * 60000
-);
 
 // converte l’orario locale in UTC reale
 const localDate = finalDate;
@@ -535,7 +529,14 @@ setTimeout(async () => {
     }
 
     const rec = new SpeechRecognition();
-    rec.lang = "it-IT";
+const SPEECH_LANG = {
+  it: "it-IT",
+  en: "en-US",
+  ru: "ru-RU",
+  ar: "ar-SA",
+  zh: "zh-CN"
+};
+rec.lang = SPEECH_LANG[lang] || "it-IT";
 
     setListening(true);
     rec.start();
