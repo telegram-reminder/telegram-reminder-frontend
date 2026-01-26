@@ -376,11 +376,10 @@ setToast({
   return;
 }
 
-
 const payload = {
   text: finalText,
   remindAt: finalDate.toISOString(),
-  lang: localStorage.getItem("lang") || "it"
+  lang: getLang()
 };
 
 
@@ -583,11 +582,33 @@ return (
 
 <select
   value={localStorage.getItem("lang") || getLang()}
-  onChange={(e) => {
-    localStorage.setItem("lang", e.target.value);
+  onChange={async (e) => {
+    const newLang = e.target.value;
+
+    // 1️⃣ salva localmente
+    localStorage.setItem("lang", newLang);
+
+    // 2️⃣ informa il backend
+    try {
+      await fetch(`${API}/api/user/lang`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ lang: newLang })
+      });
+    } catch (err) {
+      console.error("Errore salvataggio lingua:", err);
+    }
+
+    // 3️⃣ ricarica UI
     window.location.reload();
   }}
 >
+
+
+
   <option value="it">🇮🇹 IT</option>
   <option value="en">🇬🇧 EN</option>
   <option value="ru">🇷🇺 RU</option>
