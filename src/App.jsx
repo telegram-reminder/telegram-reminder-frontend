@@ -177,7 +177,11 @@ const [theme, setTheme] = useState(
   localStorage.getItem("theme") || "system"
 );
 
-const lang = localStorage.getItem("lang") || getLang();
+const [lang, setLang] = useState(
+  localStorage.getItem("lang") || getLang()
+);
+
+
 
 const today = new Date();
 
@@ -378,8 +382,7 @@ setToast({
 
 const payload = {
   text: finalText,
-  remindAt: finalDate.toISOString(),
-  lang: getLang()
+  remindAt: finalDate.toISOString()
 };
 
 
@@ -581,32 +584,27 @@ return (
 
 
 <select
-  value={localStorage.getItem("lang") || getLang()}
+  value={lang}
   onChange={async (e) => {
     const newLang = e.target.value;
 
-    // 1️⃣ salva localmente
+    // 1️⃣ aggiorna stato React
+    setLang(newLang);
+
+    // 2️⃣ salva localStorage
     localStorage.setItem("lang", newLang);
 
-    // 2️⃣ informa il backend
-    try {
-      await fetch(`${API}/api/user/lang`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ lang: newLang })
-      });
-    } catch (err) {
-      console.error("Errore salvataggio lingua:", err);
-    }
-
-    // 3️⃣ ricarica UI
-    window.location.reload();
+    // 3️⃣ salva backend (QUESTA È LA CHIAVE)
+    await fetch(`${API}/api/user/lang`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ lang: newLang })
+    });
   }}
 >
-
 
 
   <option value="it">🇮🇹 IT</option>
