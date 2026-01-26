@@ -396,6 +396,8 @@ const payload = {
 
     try {
       if (editingId) {
+		  console.log("🚨 PAYLOAD LANG =", lang, "localStorage =", localStorage.getItem("lang"));
+
        await fetch(`${API}/api/reminder/${editingId}`, {
   method: "PUT",
   headers: {
@@ -615,9 +617,8 @@ return (
         },
         body: JSON.stringify({ lang: newLang })
       });
-      console.log("LANG POST OK:", newLang);
     } catch (err) {
-      console.error("LANG POST ERROR", err);
+      console.error(err);
     }
   }}
 >
@@ -627,6 +628,8 @@ return (
   <option value="ar">العربية</option>
   <option value="zh">中文</option>
 </select>
+
+
 
       <textarea
        placeholder={t("placeholder")}
