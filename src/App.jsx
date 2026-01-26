@@ -5,7 +5,7 @@ import SettingsPanel from "./SettingsPanel.jsx"; // ✅ QUESTA RIGA
 import { t, getLang } from "./i18n";
 
 
-console.log("VERSIONE NUOVA 2 ATTIVA");
+console.log("🔥 FRONTEND BUILD NUOVA —", new Date().toISOString());
 
 
 
