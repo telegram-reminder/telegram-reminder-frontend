@@ -605,14 +605,7 @@ return (
     });
   }}
 >
-  <option value="it">🇮🇹 IT</option>
-  <option value="en">🇬🇧 EN</option>
-  <option value="ru">🇷🇺 RU</option>
-  <option value="zh">🇨🇳 中文</option>
-  <option value="ar">🇸🇦 العربية</option>
-</select>
-
-
+  
   <option value="it">🇮🇹 IT</option>
   <option value="en">🇬🇧 EN</option>
   <option value="ru">🇷🇺 RU</option>
