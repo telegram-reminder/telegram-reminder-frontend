@@ -380,11 +380,17 @@ setToast({
   return;
 }
 
+// 🔧 CONVERSIONE CORRETTA LOCALE → UTC
+const localDate = finalDate;
+
+const utcDate = new Date(
+  localDate.getTime() - localDate.getTimezoneOffset() * 60000
+);
+
 const payload = {
   text: finalText,
-  remindAt: finalDate.toISOString()
+  remindAt: utcDate.toISOString()
 };
-
 
     try {
       if (editingId) {
