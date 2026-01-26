@@ -588,31 +588,28 @@ return (
   onChange={async (e) => {
     const newLang = e.target.value;
 
-    console.log("LANG CHANGE:", newLang);
-
     // 1️⃣ aggiorna React
     setLang(newLang);
 
     // 2️⃣ salva localmente
     localStorage.setItem("lang", newLang);
 
-    // 3️⃣ avvisa il backend
-    await fetch(`${API}/api/user/lang`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ lang: newLang })
-    });
+    // 3️⃣ POST al backend (ORA VISIBILE)
+    try {
+      await fetch(`${API}/api/user/lang`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ lang: newLang })
+      });
+      console.log("LANG POST OK:", newLang);
+    } catch (err) {
+      console.error("LANG POST ERROR", err);
+    }
   }}
 >
-  <option value="it">🇮🇹 IT</option>
-  <option value="en">🇬🇧 EN</option>
-  <option value="ru">🇷🇺 RU</option>
-  <option value="zh">🇨🇳 中文</option>
-  <option value="ar">🇸🇦 العربية</option>
-</select>
 
       <textarea
        placeholder={t("placeholder")}
