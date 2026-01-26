@@ -588,13 +588,15 @@ return (
   onChange={async (e) => {
     const newLang = e.target.value;
 
+    console.log("LANG CHANGE:", newLang);
+
     // 1️⃣ aggiorna React
     setLang(newLang);
 
     // 2️⃣ salva localmente
     localStorage.setItem("lang", newLang);
 
-    // 3️⃣ avvisa il backend (QUESTA CHIAMATA ORA PARTIRÀ)
+    // 3️⃣ avvisa il backend
     await fetch(`${API}/api/user/lang`, {
       method: "POST",
       headers: {
@@ -605,7 +607,6 @@ return (
     });
   }}
 >
-  
   <option value="it">🇮🇹 IT</option>
   <option value="en">🇬🇧 EN</option>
   <option value="ru">🇷🇺 RU</option>
