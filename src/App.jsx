@@ -393,13 +393,14 @@ const payload = {
   lang: localStorage.getItem("lang") || lang
 };
 
+		  console.log("📦 PAYLOAD REMINDER =", payload);
+
+		  console.log("🚨 PAYLOAD LANG =", lang, "localStorage =", localStorage.getItem("lang"));
 
 
     try {
       if (editingId) {
-		  console.log("📦 PAYLOAD REMINDER =", payload);
-
-		  console.log("🚨 PAYLOAD LANG =", lang, "localStorage =", localStorage.getItem("lang"));
+		  
 
        await fetch(`${API}/api/reminder/${editingId}`, {
   method: "PUT",
