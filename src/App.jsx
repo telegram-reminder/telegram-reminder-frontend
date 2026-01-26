@@ -603,13 +603,9 @@ return (
   onChange={async (e) => {
     const newLang = e.target.value;
 
-    // 1️⃣ aggiorna React
     setLang(newLang);
-
-    // 2️⃣ salva localmente
     localStorage.setItem("lang", newLang);
 
-    // 3️⃣ POST al backend (ORA VISIBILE)
     try {
       await fetch(`${API}/api/user/lang`, {
         method: "POST",
@@ -625,6 +621,12 @@ return (
     }
   }}
 >
+  <option value="it">Italiano</option>
+  <option value="en">English</option>
+  <option value="ru">Русский</option>
+  <option value="ar">العربية</option>
+  <option value="zh">中文</option>
+</select>
 
       <textarea
        placeholder={t("placeholder")}
