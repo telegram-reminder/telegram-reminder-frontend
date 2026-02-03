@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import MonthlyCalendar from "./MonthlyCalendar.jsx";
 import SettingsPanel from "./SettingsPanel.jsx"; // ✅ QUESTA RIGA
 import { t, getLang } from "./i18n";
+import OnboardingGate from './onboarding/OnboardingGate.tsx';
 
 
 console.log("🔥 FRONTEND BUILD NUOVA —", new Date().toISOString());
@@ -21,26 +22,6 @@ const LAST_SEEN_SENT_AT_KEY = "telegram_reminder_last_seen_sent_at";
 
 
 /*
-====================================================
-TOKEN BOOTSTRAP
-====================================================
-*/
-(() => {
-  let token = null;
-
-  // 1️⃣ Token da URL classico
-  const params = new URLSearchParams(window.location.search);
-  token = params.get("token");
-
-  // 2️⃣ Token da Telegram WebApp
-  if (!token && window?.Telegram?.WebApp?.initDataUnsafe?.start_param) {
-    token = window.Telegram.WebApp.initDataUnsafe.start_param;
-  }
-
-  if (token) {
-    localStorage.setItem("user_token", token);
-  }
-})();
 
 
 /*
@@ -111,7 +92,68 @@ const parseDateFromText = (input) => {
   return { cleanText: text.trim(), date };
 };
 
+function upgradeToPremium() {
+  if (window.Android && typeof window.Android.purchasePremium === "function") {
+    window.Android.purchasePremium();
+  } else {
+    alert("Premium purchase is only available in the Android app");
+  }
+}
+
+window.onPremiumPurchased = async (purchaseToken) => {
+  // 🔹 1) Recupero telegram_id dal WebApp Telegram
+  const telegramId =
+    window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+
+  if (!telegramId) {
+    console.error("❌ telegram_id MANCANTE in onPremiumPurchased");
+    alert("Errore: telegram_id non trovato. Riapri l’app da Telegram.");
+    return;
+  }
+
+  console.log("✅ PREMIUM VERIFY → telegram_id:", telegramId);
+
+  // 🔹 2) Chiamata corretta al backend
+  const res = await fetch(
+    "https://api.telegram-reminder.app/api/premium/verify",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        telegram_id: String(telegramId),   // ← FONDAMENTALE
+        purchaseToken                     // ← token Play
+      })
+    }
+  );
+
+  const data = await res.json();
+  console.log("🎯 /api/premium/verify RESPONSE:", data);
+
+if (res.ok) {
+  const token = localStorage.getItem("token");
+
+  const status = await fetch(
+    "https://api.telegram-reminder.app/api/user/status",
+    {
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  ).then(r => r.json());
+
+    console.log("🔄 NUOVO USER STATUS DOPO ACQUISTO:", status);
+
+    // Aggiorna lo stato React (se vuoi evitare reload)
+    window._setUserStatus?.(status);
+
+    // Ricarica pulita (opzionale ma consigliata)
+    window.location.reload();
+  } else {
+    alert("Errore verifica premium: " + (data.error || "sconosciuto"));
+  }
+};
+
+
 function Toast({ toast, onClose }) {
+	 console.log("🧪 TOAST RENDER", toast);
   if (!toast) return null;
 
   return (
@@ -130,6 +172,17 @@ function Toast({ toast, onClose }) {
 }
 
 
+(() => {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+
+  if (token) {
+    localStorage.setItem("token", token);
+    window.history.replaceState({}, document.title, "/");
+  }
+})();
+
+
 /*
 ====================================================
 APP
@@ -137,9 +190,26 @@ APP
 */
 
 export default function App() {
-  const token = localStorage.getItem("user_token");
+  //const token = localStorage.getItem("user_token");
+  
+    const token = localStorage.getItem("token");
 
-console.log("APP CON SETTINGS");
+  // ⛔ GATE UNICO
+  if (!token) {
+    return <OnboardingGate />;
+  }
+const [userStatus, setUserStatus] = useState({
+  is_premium: false,
+  max_active_reminders: 3
+});
+const [statusLoaded, setStatusLoaded] = useState(false);
+
+
+// espone setter a window SOLO DOPO il primo render
+useEffect(() => {
+  window._setUserStatus = setUserStatus;
+}, []);
+
 
   useEffect(() => {
     if (window.Telegram?.WebApp) {
@@ -148,13 +218,49 @@ console.log("APP CON SETTINGS");
     }
   }, []);
   
+  useEffect(() => {
+  const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+
+  if (telegramId && window.Android?.saveTelegramId) {
+    window.Android.saveTelegramId(String(telegramId));
+    console.log("📲 telegram_id inviato ad Android:", telegramId);
+  } else {
+    console.warn("⚠️ NON è stato possibile salvare telegram_id in Android");
+  }
+}, []);
+
   
+ useEffect(() => {
+  if (!token) return;
+
+  fetch(`${API}/api/user/status`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+    .then(r => r.json())
+    .then(data => {
+      console.log("👤 USER STATUS", data);
+
+      // 🔥 NORMALIZZAZIONE SICURA (chiave!)
+      setUserStatus({
+        is_premium: !!data.is_premium,
+        max_active_reminders: data.max_active_reminders ?? 3,
+        can_use_email: !!data.can_use_email,
+        voice_remaining_today: data.voice_remaining_today
+      });
+	  setStatusLoaded(true);
+    })
+    .catch(err => {
+      console.error("Errore user/status:", err);
+    });
+}, [token]);
   /*
   --------------------------------------------------
   STATE
   --------------------------------------------------
   */
-
+  
   const [text, setText] = useState("");
   const [remindAt, setRemindAt] = useState("");
   const [pending, setPending] = useState([]);
@@ -167,7 +273,7 @@ console.log("APP CON SETTINGS");
   const [showBadge, setShowBadge] = useState(false);
   const [newSentCount, setNewSentCount] = useState(0);
   const [justAddedId, setJustAddedId] = useState(null);
-const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const pendingRefs = useRef([]);
 
@@ -206,11 +312,15 @@ useEffect(() => {
 
 
 useEffect(() => {
-  const lang = localStorage.getItem("lang") || getLang();
-
   document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
   document.documentElement.lang = lang;
-}, []);
+}, [lang]);
+
+
+const hasNoReminders =
+  !loading &&
+  pending.length === 0 &&
+  sent.length === 0;
 
 
 pending.forEach((r, index) => {
@@ -255,10 +365,12 @@ const handleDaySelect = (dayKey) => {
   try {
     const [p, s] = await Promise.all([
       fetch(`${API}/api/reminders`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}`,
+			"Cache-Control": "no-store"}
       }),
       fetch(`${API}/api/reminders/sent`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}`,
+			"Cache-Control": "no-store"}
       })
     ]);
 
@@ -301,19 +413,15 @@ if (Array.isArray(sentData)) {
   */
 useEffect(() => {
   if (!token) return;
-  loadData();
-}, [token]);
 
-useEffect(() => {
-  if (!token) return;
+  loadData(); // 👈 primo e UNICO load iniziale
 
   const interval = setInterval(() => {
     loadData();
-  }, 60000); // ogni 10 secondi
+  }, 60000);
 
   return () => clearInterval(interval);
 }, [token]);
-
 
 
 useEffect(() => {
@@ -361,8 +469,32 @@ useEffect(() => {
   ADD / UPDATE REMINDER
   --------------------------------------------------
   */
-
+console.log("STATUS IN SAVE:", userStatus, "loaded:", statusLoaded);
   const saveReminder = async () => {
+	  
+const isFreeLimitReached =
+  statusLoaded &&               // 🔥 NOVITÀ
+  !userStatus.is_premium &&
+  !editingId &&
+  pending.length >= (userStatus.max_active_reminders ?? 3);
+
+
+
+if (isFreeLimitReached) {
+	console.log("🔥 FREE LIMIT — TOAST SHOULD SHOW");
+  setToast({
+    type: "info",
+    message: t("freeLimitReached"),
+    actionLabel: t("upgradePremium"),
+    onAction: () =>
+      window.open("https://t.me/AxelPBot", "_blank")
+  });
+
+  return;
+}
+
+
+
     if (!text) return;
 
     let finalText = text;
@@ -381,11 +513,8 @@ setToast({
 }
 
 
-// converte l’orario locale in UTC reale
-const localDate = finalDate;
-const utcDate = new Date(
-  localDate.getTime() - localDate.getTimezoneOffset() * 60000
-);
+const utcDate = finalDate;
+
 
 const payload = {
   text: finalText,
@@ -402,7 +531,7 @@ const payload = {
       if (editingId) {
 		  
 
-       await fetch(`${API}/api/reminder/${editingId}`, {
+await fetch(`${API}/api/reminder/${editingId}`, {
   method: "PUT",
   headers: {
     "Content-Type": "application/json",
@@ -411,17 +540,43 @@ const payload = {
   body: JSON.stringify(payload)
 });
 
-        setEditingId(null);
+setPending(list =>
+  list.map(r =>
+    r.id === editingId
+      ? { ...r, text: payload.text, remind_at: payload.remindAt }
+      : r
+  )
+);
+
+setEditingId(null);
+
       } else {
-        await fetch(`${API}/api/reminder`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`
-  },
-  body: JSON.stringify(payload)
-});
+  const res = await fetch(`${API}/api/reminder`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) throw new Error("Create failed");
+
+  // ✅ optimistic UI
+const newReminder = {
+  id: "__temp__" + Date.now(),
+  text: payload.text,
+  remind_at: payload.remindAt
+};
+
+setPending(list =>
+  [...list, newReminder].sort(
+    (a, b) => new Date(a.remind_at) - new Date(b.remind_at)
+  )
+);
+
 }
+
 setToast({
   type: "success",
   message: t("reminderUpdated")
@@ -431,8 +586,8 @@ setToast({
 setText("");
 setRemindAt("");
 
-setJustAddedId("pending"); // placeholder
-loadData();
+//setJustAddedId("pending"); // placeholder
+//loadData();
 
     } catch (err) {
       console.error("Errore saveReminder:", err);
@@ -495,31 +650,37 @@ const clearSentReminders = async () => {
 
 
 
-const deleteReminder = (reminder) => {
-  // rimuove subito dalla UI
-  setPending(list => list.filter(r => r.id !== reminder.id));
+const deleteReminder = async (reminder) => {
+  try {
+    const res = await fetch(`${API}/api/reminder`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ id: reminder.id })
+    });
 
-  setToast({
-    type: "success",
-    message: "Promemoria eliminato",
-    actionLabel: "Annulla",
-    onAction: () => {
-      setPending(list => [...list, reminder]);
-      setToast(null);
+    if (!res.ok) {
+      throw new Error("Delete failed");
     }
-  });
 
-setTimeout(async () => {
-  await fetch(`${API}/api/reminder`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({ id: reminder.id })
-  });
-}, 5000);
+    // ✅ aggiorna stato LOCALE
+    setPending(list => list.filter(r => r.id !== reminder.id));
+
+setToast({
+  type: "success",
+   message: t("reminderDeleted")
+});
+
+  } catch (err) {
+setToast({
+  type: "error",
+  message: t("reminderDeleteError")
+});;
+  }
 };
+
 
 
 
@@ -563,56 +724,45 @@ rec.lang = SPEECH_LANG[lang] || "it-IT";
 
   /*
   --------------------------------------------------
-  TOKEN CHECK
-  --------------------------------------------------
-  */
-
-if (!token && !window?.Telegram?.WebApp) {
-  return (
-    <div className="app">
-      <h2>⚠️ Apri l’app dal link ricevuto su Telegram</h2>
-    </div>
-  );
-}
-
-  /*
-  --------------------------------------------------
   UI
   --------------------------------------------------
   */
 return (
   <div className="app">
+ <Toast
+  toast={toast}
+  onClose={() => setToast(null)}
+/>
+
 <div className="app-header">
-  <h1 className="app-title">
-    {t("appTitle")}
-  </h1>
+  <div className="header-left">
+    <h1 className="app-title">
+      {t("appTitle")}
+{userStatus?.is_premium === false && (
+  <span className="badge-free">FREE</span>
+)}
 
-<button
-  className="settings-button"
-  onClick={() => {
-    console.log("CLICK SETTINGS");
-    setSettingsOpen(true);
-  }}
->
-  ⚙️
-</button>
+    </h1>
+  </div>
 
+  <button
+    className="settings-button"
+    onClick={() => setSettingsOpen(true)}
+  >
+    ⚙️
+  </button>
 </div>
 
+{/* ACTION ROW */}
+<div className="header-actions">
+  <select
+    className="lang-select"
+    value={lang}
+    onChange={async (e) => {
+      const newLang = e.target.value;
+      setLang(newLang);
+      localStorage.setItem("lang", newLang);
 
-    <Toast toast={toast} onClose={() => setToast(null)} />
-
-
-
-<select
-  value={lang}
-  onChange={async (e) => {
-    const newLang = e.target.value;
-
-    setLang(newLang);
-    localStorage.setItem("lang", newLang);
-
-    try {
       await fetch(`${API}/api/user/lang`, {
         method: "POST",
         headers: {
@@ -621,17 +771,40 @@ return (
         },
         body: JSON.stringify({ lang: newLang })
       });
-    } catch (err) {
-      console.error(err);
-    }
-  }}
->
-  <option value="it">Italiano</option>
-  <option value="en">English</option>
-  <option value="ru">Русский</option>
-  <option value="ar">العربية</option>
-  <option value="zh">中文</option>
-</select>
+    }}
+  >
+    <option value="en">🇬🇧 English</option>
+	<option value="ar">🇸🇦 العربية</option>
+	<option value="it">🇮🇹 Italiano</option>
+    <option value="ru">🇷🇺 Русский</option> 
+    <option value="zh">🇨🇳 中文</option>
+  </select>
+
+{userStatus && !userStatus.is_premium && (
+  <button
+    className="upgrade-btn"
+    onClick={() => {
+      const telegramId =
+  window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+
+const url =
+  "intent://billing?" +
+  "tid=" + encodeURIComponent(telegramId) +
+  "#Intent;" +
+  "scheme=app;" +
+  "package=app.telegram.reminder;" +
+  "end";
+
+window.location.href = url;
+    }}
+  >
+    ⭐ {t("upgradePremium")}
+  </button>
+)}
+
+
+
+</div>
 
 
 
@@ -652,7 +825,7 @@ return (
         onChange={(e) => setRemindAt(e.target.value)}
       />
 
-<button
+<button className="primary"
   onClick={() => {
     navigator.vibrate?.(25);
     saveReminder();
@@ -661,10 +834,7 @@ return (
   {t("save")}
 </button>
 
-
-
-
-      <hr />
+<hr />
 
 <hr />
 
@@ -685,6 +855,11 @@ return (
 
 
       <h2>⏳ {t("pending")}</h2>
+	  
+	  {hasNoReminders && (
+  <p className="empty">⏰ {t("empty")}</p>
+)}
+
 
       {loading && (
   <div className="skeleton-list">
@@ -693,9 +868,7 @@ return (
   </div>
 )}
 
-{!loading && pending.length === 0 && (
-  <p className="empty">⏰ Nessun promemoria</p>
-)}
+
 
 {!loading && (
   <ul>
@@ -703,7 +876,7 @@ return (
 <li
   key={r.id}
   ref={(el) => (pendingRefs.current[index] = el)}
-  className={r.id === justAddedId ? "enter" : ""}
+  className={`reminder-card ${r.id === justAddedId ? "enter" : ""}`}
 >
 
         <strong>{r.text}</strong><br />
@@ -745,7 +918,7 @@ return (
 
       {sent.length > 0 && (
 <button onClick={clearSentReminders} disabled={clearing}>
-  {clearing ? "Eliminazione…" : "Elimina"}
+  {clearing ? t("deleting") : t("delete")}
 </button>
 
       )}

@@ -71,6 +71,9 @@ input[type="datetime-local"] {
   border-radius: 10px;
   border: 1px solid #ccc;
   background: white;
+    min-height: 1.2em;
+  padding-top: 16px;
+  padding-bottom: 16px;
 }
 
 textarea {
@@ -350,29 +353,112 @@ body.dark .app-header {
 }
 
 
-.app-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
+.upgrade-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
 
+.header-top {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+}
 
-  background: var(--bg, #fff);
-  padding: 8px 12px;
+
+
+
+
+
+.badge-free {
+  background: #facc15;
+  color: #000;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+
+
+
+.header-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
-
-  border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
 
+.header-actions > * {
+  flex: 1;
+}
 
-.settings-button {
-  font-size: 1.4rem;
-  background: none;
+/* LINGUA */
+.lang-select {
+  height: 38px;
+  font-size: 0.9rem;
+  padding: 0 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+}
+
+/* UPGRADE */
+.upgrade-btn {
+  height: 38px;
+  font-size: 0.9rem;
+  padding: 0 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  font-weight: 600;
   border: none;
-  cursor: pointer;
 }
+
+
+.badge-free-overlay {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+
+  background: #facc15;
+  color: #000;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 8px;
+
+  z-index: 2;
+  pointer-events: none; /* 👈 IMPORTANTISSIMO */
+}
+
+.badge-free {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #facc15;
+  color: #000;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 
 
 .toast-info {
@@ -381,17 +467,7 @@ body.dark .app-header {
   border-left: 4px solid #2563eb;
 }
 
-.app-title {
-  flex: 1;
-  margin: 0;
 
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: clip;
-
-  font-size: 1.25rem;
-  font-weight: 600;
-}
 
 
 /* RTL support (Arabic) */
@@ -423,26 +499,34 @@ body.dark .app-header {
   font-size: 1.1rem;
   font-weight: 600;
 }
+/* HEADER TOP */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
 
 .settings-button {
   flex-shrink: 0;
-
-  width: 32px;
-  height: 32px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 1.2rem;
-
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-
-  cursor: pointer;
 }
+
 
 /* =====================================================
    MonthlyCalendar – FORCED GLOBAL STYLES
@@ -572,4 +656,194 @@ body.dark .app-header {
     transform: translate3d(0, 0, 0);
     opacity: 1;
   }
+}
+
+/* =========================
+   REMINDER CARDS
+========================= */
+
+.reminder-card {
+  background: var(--card-bg, #ffffff);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.reminder-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+}
+
+/* animazione quando aggiunto */
+.reminder-card.enter {
+  animation: popIn 0.25s ease-out;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+
+body.dark .reminder-card {
+  background: #1f2937;
+}
+button.primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(37,99,235,.25);
+}
+.reminder-card button {
+  margin-top: 6px;
+  margin-right: 6px;
+  border-radius: 8px;
+  padding: 6px 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.badge-free {
+  margin-left: 8px;
+  padding: 2px 6px;
+  font-size: 12px;
+  background: #facc15;
+  color: #000;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-upgrade {
+  font-size: 0.85rem;
+  padding: 6px 10px;
+}
+/* SETTINGS BUTTON – override totale */
+.settings-button {
+  width: auto !important;
+  height: auto;
+
+  background: none !important;
+  color: inherit;
+
+  padding: 0;
+  margin: 0;
+
+  font-size: 1.2rem;
+  line-height: 1;
+
+  border: none;
+  box-shadow: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+/* ALLINEAMENTO LINGUA + UPGRADE */
+.lang-select,
+.upgrade-btn {
+  height: 38px;
+  display: flex;
+  align-items: center;
+}
+.lang-select {
+  padding: 0 10px;
+  line-height: 1;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+.upgrade-btn {
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* FIX DEFINITIVO ALLINEAMENTO SELECT + BUTTON */
+
+.header-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.header-actions > * {
+  width: 100%;
+}
+
+.lang-select,
+.upgrade-btn {
+  min-height: 38px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+
+  font-size: 0.9rem;
+  line-height: 1;
+
+  padding: 0 10px;
+}
+
+.lang-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  display: block;
+  height: 100%;
+  line-height: normal;
+
+  padding: 0 10px;
+
+  background-color: #f3f4f6; /* come ora */
+}
+
+.upgrade-btn {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lang-select,
+.upgrade-btn {
+  height: 34px;
+  font-size: 0.85rem;
+}
+
+.lang-select {
+  padding: 0 10px;
+  line-height: 34px; /* 👈 centra il testo */
+}
+
+.upgrade-btn {
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lang-select,
+.upgrade-btn {
+  border-radius: 8px;
 }
